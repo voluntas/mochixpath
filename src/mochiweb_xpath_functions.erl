@@ -46,7 +46,9 @@ default_functions() ->
         {'sum', fun sum/2,[node_set]},
         {'string-length', fun 'string-length'/2,[string]},
 		{'string', fun to_string/2, [node_set]},
-		{'last', fun last/2, [node_set]}
+		{'last', fun last/2, [node_set]},
+        {'contains', fun contains/2,[string,string]},
+        {'concat', fun concat/2,[string,string,string]}
     ].
 
 
@@ -109,3 +111,18 @@ to_string(_Ctx,[Values]) ->
 last(_Ctx, [Values]) -> 
     lists:last(Values).
 	
+%% @doc Function: boolean contains(string, string)
+%%      The contains function returns true if the second string is contained
+%%      within the first.
+%%      TODO: not Unicode safe.
+contains(_Ctx,[Haystack,Needle]) ->
+    string:str(binary_to_list(Haystack), binary_to_list(Needle)) /= 0.
+
+%% @doc Function: string concat(string...)
+%%      Returns the concatenation of all given strings.
+concat(_Ctx,Strs) ->
+    lists:foldr(
+        fun(A,B) -> <<A/binary, B/binary>> end,
+        <<>>,
+        Strs
+    ).
