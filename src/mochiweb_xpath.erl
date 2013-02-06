@@ -31,9 +31,9 @@
 
 %internal data
 -record(ctx, {
-        root,
-        ctx,
-        functions
+        root :: mfa(),
+        ctx :: [mfa()],
+        functions :: [mfa()]
     }).
 
 

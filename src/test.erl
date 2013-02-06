@@ -75,7 +75,7 @@ stupid(Req) ->
 test2() ->
 	Url = "http://www.amazon.com/s/qid=1232337093/ref=sr_pg_2/182-6187393-2698830?ie=UTF8&rs=14545&rh=n%3A75%2Cn%3A14545&page=2",
 	inets:start(),
-	{ok, {_,_,Body}} = http:request(get, {Url, []}, [], []),
+	{ok, {_,_,Body}} = httpc:request(get, {Url, []}, [], []),
 	ok = file:write_file("html-docs/test3.html", Body),
 	Doc = mochiweb_html:parse(Body),
 	X = mochiweb_xpath:execute("//div[@id='searchTemplate']",Doc),
