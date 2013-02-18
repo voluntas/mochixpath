@@ -80,9 +80,9 @@ execute(XPathString,Doc,Functions) when is_list(XPathString) ->
 
 execute(XPath,Doc,Functions) ->
     R = if 
-        is_list(Doc) -> {root,none,Doc};
-        true -> {root,none,[Doc]}
-    end,
+            is_list(Doc) -> {root,none,Doc};
+            true -> {root,none,[Doc]}
+        end,
     Funs =  lists:foldl(fun(T={Key,_Fun,_Signature},Prev) ->
                             lists:keystore(Key,1,Prev,T)
             end,mochiweb_xpath_functions:default_functions(),Functions),
@@ -108,13 +108,13 @@ execute_expr({number,N},_Ctx) ->
 
 execute_expr({function_call,Fun,Args},Ctx=#ctx{functions=Funs}) ->
     RealArgs = lists:map(fun(Arg) ->
-                            execute_expr(Arg,Ctx)
-                        end,Args),
+                                 execute_expr(Arg,Ctx)
+                         end,Args),
     case lists:keysearch(Fun,1,Funs) of
         {value,{Fun,F,FormalSignature}} -> 
             TypedArgs = lists:map(fun({Type,Arg}) ->
-                                    mochiweb_xpath_utils:convert(Arg,Type)
-                        end,lists:zip(FormalSignature,RealArgs)),
+                                          mochiweb_xpath_utils:convert(Arg,Type)
+                                  end,lists:zip(FormalSignature,RealArgs)),
             F(Ctx,TypedArgs);
         false -> 
             throw({efun_not_found,Fun})
@@ -130,45 +130,41 @@ do_path_expr({refine,Step1,Step2},Ctx) ->
 
 
 axis('child',{name,{Tag,_,_}},Context) ->
-    F = fun ({Tag2,_,_}) when Tag2 == Tag -> true;
-             (_) -> false
+    F = fun({Tag2,_,_}) when Tag2 == Tag -> true;
+           (_) -> false
         end,
-    N = lists:map(fun ({_,_,Childs}) -> 
-                       lists:filter(F,Childs) ;
-                   (_) -> []
-                end, Context),
+    N = lists:map(fun({_,_,Childs}) -> lists:filter(F,Childs) ;
+                     (_) -> []
+                  end, Context),
     lists:flatten(N);
 
 
 axis('child',{node_type,text},Context) ->
-    L = lists:map(fun ({_,_,Childs}) -> 
+    lists:map(fun({_,_,Childs}) -> 
                      case lists:filter(fun is_binary/1,Childs) of
-                            [] -> [];
-                            T -> list_to_binary(T)
+                         [] -> [];
+                         T -> list_to_binary(T)
                      end;
-                       (_) -> 
-                       []
-                    end,Context),
-    L;
+                 (_) -> 
+                     []
+              end,Context).
 
 axis('child',{wildcard,wildcard},Context) ->
-   L = lists:map(fun
-                ({_,_,Children})-> Children;
-                (_) -> []
-              end, Context),
+   L = lists:map(fun({_,_,Children})-> Children;
+                    (_) -> []
+                 end, Context),
    lists:flatten(L);
                     
 
 axis(attribute,{name,{Attr,_Prefix,_Local}},Context) ->
-     L = lists:map(fun ({_,Attrs,_}) -> 
+    lists:map(fun({_,Attrs,_}) -> 
                      case proplists:get_value(Attr,Attrs) of
-                            undefined -> [];
-                            V -> V
+                         undefined -> [];
+                         V -> V
                      end;
-                       (_) -> 
-                       []
-                    end,Context),
-    L;
+                 (_) -> 
+                     []
+              end,Context).
 
 axis('descendant_or_self',{node_type,'node'},Context) ->
     descendant_or_self(Context);
@@ -195,7 +191,7 @@ descendant_or_self([_|Rest],Acc) ->
 
 apply_predicates(Predicates,NodeList,Ctx) ->
     lists:foldl(fun(Pred,Nodes) -> 
-                 apply_predicate(Pred,Nodes,Ctx) 
+                        apply_predicate(Pred,Nodes,Ctx) 
                 end, NodeList,Predicates).
 
 % special case: indexing
@@ -204,19 +200,17 @@ apply_predicate({pred,{number,N}},NodeList,_Ctx) when length(NodeList) >= N ->
 
 apply_predicate({pred,Pred},NodeList,Ctx) ->
     Filter = fun(Node) ->
-                mochiweb_xpath_utils:boolean_value(
-                        execute_expr(Pred,Ctx#ctx{ctx=[Node]}))
-              end,
-    L = lists:filter(Filter,NodeList),
-    L.
+                     mochiweb_xpath_utils:boolean_value(execute_expr(Pred,Ctx#ctx{ctx=[Node]}))
+             end,
+    lists:filter(Filter,NodeList).
 
 
 %% @see http://www.w3.org/TR/1999/REC-xpath-19991116 , section 3.4 
 comp(CompFun,L,R) when is_list(L), is_list(R) ->
     lists:any(fun(LeftValue) ->
-                     lists:any(fun(RightValue)->
-                                 CompFun(LeftValue,RightValue) 
-                               end, R)
+                      lists:any(fun(RightValue)->
+                                        CompFun(LeftValue,RightValue) 
+                                end, R)
               end, L);
 comp(CompFun,L,R) when is_list(L) ->
     lists:any(fun(LeftValue) -> CompFun(LeftValue,R) end,L);
@@ -226,32 +220,32 @@ comp(CompFun,L,R) ->
     CompFun(L,R).
 
 comp_fun('=') -> 
-    fun 
-        (A,B) when is_number(A) -> A == mochiweb_xpath_utils:number_value(B);
-        (A,B) when is_number(B) -> mochiweb_xpath_utils:number_value(A) == B;
-        (A,B) when is_boolean(A) -> A == mochiweb_xpath_utils:boolean_value(B);
-        (A,B) when is_boolean(B) -> mochiweb_xpath_utils:boolean_value(A) == B;
-        (A,B) -> mochiweb_xpath_utils:string_value(A) == mochiweb_xpath_utils:string_value(B)
+    fun(A,B) when is_number(A) -> A == mochiweb_xpath_utils:number_value(B);
+       (A,B) when is_number(B) -> mochiweb_xpath_utils:number_value(A) == B;
+       (A,B) when is_boolean(A) -> A == mochiweb_xpath_utils:boolean_value(B);
+       (A,B) when is_boolean(B) -> mochiweb_xpath_utils:boolean_value(A) == B;
+       (A,B) -> mochiweb_xpath_utils:string_value(A) == mochiweb_xpath_utils:string_value(B)
     end;
 
 comp_fun('!=') ->
-    fun(A,B) -> F = comp_fun('='),
-                not F(A,B) 
+    fun(A,B) ->
+            F = comp_fun('='),
+            not F(A,B) 
     end;
 
 comp_fun('>') ->
-  fun(A,B) -> 
-    mochiweb_xpath_utils:number_value(A) > mochiweb_xpath_utils:number_value(B) 
-  end;
+    fun(A,B) -> 
+            mochiweb_xpath_utils:number_value(A) > mochiweb_xpath_utils:number_value(B) 
+    end;
 comp_fun('<') ->
-  fun(A,B) -> 
-    mochiweb_xpath_utils:number_value(A) < mochiweb_xpath_utils:number_value(B)
-   end;
+    fun(A,B) -> 
+            mochiweb_xpath_utils:number_value(A) < mochiweb_xpath_utils:number_value(B)
+    end;
 comp_fun('<=') ->
-  fun(A,B) -> 
-    mochiweb_xpath_utils:number_value(A) =< mochiweb_xpath_utils:number_value(B) 
-  end;
+    fun(A,B) -> 
+            mochiweb_xpath_utils:number_value(A) =< mochiweb_xpath_utils:number_value(B) 
+    end;
 comp_fun('>=') ->
-  fun(A,B) -> 
-    mochiweb_xpath_utils:number_value(A) >= mochiweb_xpath_utils:number_value(B) 
-  end.
+    fun(A,B) -> 
+            mochiweb_xpath_utils:number_value(A) >= mochiweb_xpath_utils:number_value(B) 
+    end.

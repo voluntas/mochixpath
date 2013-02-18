@@ -1,6 +1,7 @@
 %% Copyright (c) 2008-2009 
 %% Pablo Polvorin <ppolv@jabberes.org> [http://ppolv.wordpress.com]
 %% Jacob Vorreuter <jacob.vorreuter@gmail.com>
+%% Nakai Ryosuke <nakai@voluntas.net>
 %% 
 %% Permission is hereby granted, free of charge, to any person
 %% obtaining a copy of this software and associated documentation
